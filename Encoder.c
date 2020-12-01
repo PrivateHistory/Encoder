@@ -127,24 +127,41 @@ volatile unsigned int *s_pPwmClkRegisters;
 
 enum signal_state{initial,high,low};
 enum encoder_state{initial,high,clockwise,anticlockwise};
-
+enum general_rotation{clockwise,anticlockwise};
 enum signal_state ChanelA;
 enum signal_state ChanelB;
 enum encoder_state Encoder_State;
+enum general_rotation general_rotation;
+
+
+
 int counter_rotation=0;
 static struct hrtimer timer;
+
 ///set the timer
 ktime_t ktime;
 //callback function activated when the timer interval is done and the led blinks
 enum hrtimer_restart callback_function( struct hrtimer ∗timer )
 {
 //Read data from encoder
-if(gpio_struct->GPIOSET[Encoder_ChannelA/32]&=1<<Encoder_ChannelA && ChanelA!=low){
+if(gpio_struct->GPIOSET[Encoder_ChannelA/32]&=1<<Encoder_ChannelA){
+//there is 256 pulse in a complet rotation ,so at the end the number of rotations is just (counter_rotation)/256;
+//if channel low and now high that means there is jump
+ if(ChanelA==low){
+	 if(general_rotation==clockwise)
+	    {
+				counter_rotation++;
+			}
+			else{
+				counter_rotation--;
+			}
+ }
 	ChanelA=high;
- counter_rotation++;
+
 }
 else{
 	ChanelA=low;
+	//help to count the number of high values
 }
 
 if(gpio_struct->GPIOSET[Encoder_ChannelB/32]&=1<<Encoder_ChannelB){
@@ -160,21 +177,17 @@ else{
 if(ChanelA==high && ChanelB==high)
    encoder_state=high;
 if(encoder_state==high && ChanelA==high && ChanelB==low)
+{
+	 general_rotation=clockwise;
    encoder_state=clockwise;
+
+ }
 if(encoder_state==high && ChanelA==low && ChanelB==high)
+{
+	general_rotation=anticlockwise;
   encoder_state=anticlockwise;
 
-
-//there is 256 pulse in a complet rotation ,so at the end the number of rotations is just (counter_rotation)/256;
-if(encoder_state==clockwise)	{
-
-  counter_rotation++;
 }
-else{
-  counter_rotation--;
-}
-	
-
 return HRTIMER_RESTART;
 }
 
@@ -436,6 +449,7 @@ static int __init boilerplate_init(void)
 	//The time between two measuremnets is 0.4ms
 	ktime = ktime_set( 0, MS_TO_NS(0.4) );
 	//Initial states for encoder
+	general_rotation=clockwise;
 	ChanelA=initial;
 	ChanelB=initial;
 	Encoder_State=initial;
