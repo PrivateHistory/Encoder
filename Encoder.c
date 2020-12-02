@@ -424,9 +424,8 @@ static int __init boilerplate_init(void)
 	 SetGPIO_with_function(EnableB,GPIO_INPUT);
    SetGPIO_with_function(EnableB,GPIO_OUTPUT);
 	 SetGPIO_with_function(Encoder_ChannelA,GPIO_INPUT);
-	 SetGPIO_with_function(Encoder_ChannelA,GPIO_OUTPUT);
 	 SetGPIO_with_function(Encoder_ChannelB,GPIO_INPUT);
-	 SetGPIO_with_function(Encoder_ChannelB,GPIO_OUTPUT);
+
 
    //Initial state
      SetGPIOOutputValue(INA,1);
